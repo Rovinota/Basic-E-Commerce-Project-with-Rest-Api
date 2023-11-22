@@ -1,26 +1,98 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
-class ProductListScreen extends StatelessWidget {
+import '../Widgets/Product_item.dart';
+import 'add_new_product_screen.dart';
+
+class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return  Scaffold(
-      appBar: AppBar(
-        title: const Text("Product List"),
-      ),
-      body: Column(
-        children: [
-          ListTile(
+  State<ProductListScreen> createState() => _ProductListScreenState();
+}
 
-            leading: Image.network("https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500", width: 100,),
-            title: Text('Product Title'),
-            trailing: Text("\$20"),
-            subtitle: Text("Product Description"),
-          )
-        ],
-      ),
-    );
+class _ProductListScreenState extends State<ProductListScreen> {
+  bool inProgress = false;
+  List<products> Productlist = [];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getProductList();
   }
+
+  void getProductList() async {
+    inProgress = true;
+    setState(() {});
+    Response response =
+        await get(Uri.parse("https://crud.teamrabbil.com/api/v1/ReadProduct"));
+    print(response.body);
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      if (responseData['status'] == 'success' ) {
+        for (Map<String, dynamic> productJson in responseData['data']) {
+          Productlist.add(products(
+              productJson['_id'],
+              productJson['ProductName'],
+              productJson['ProductCode'],
+              productJson['Img'] ?? "",
+              productJson['UnitPrice'],
+              productJson['Qty']?? "",
+              productJson['TotalPrice']));
+        }
+      }
+
+    }
+    inProgress = false;
+    print(Productlist.length);
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text("Product List"),
+          actions: [
+            IconButton(onPressed: (){
+              getProductList();
+            }, icon: Icon(Icons.refresh)),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddNewProductScreen(),
+                ));
+          },
+          child: const Icon(Icons.add),
+        ),
+        body: inProgress ? Center(child: CircularProgressIndicator(),) : ListView.separated(
+                itemCount: Productlist.length,
+                itemBuilder: (context, index) {
+                  return ProductItem(
+                    Product: Productlist[index],
+                  );
+                },
+                separatorBuilder: (_, __) => Divider(),
+              ));
+  }
+}
+
+class products {
+  final String id;
+  final String productname;
+  final String productCode;
+  final String imag;
+  final String unitprice;
+  final String quantity;
+  final String totalPrice;
+  products(this.id, this.productname, this.productCode, this.imag,
+      this.unitprice, this.quantity, this.totalPrice);
 }
