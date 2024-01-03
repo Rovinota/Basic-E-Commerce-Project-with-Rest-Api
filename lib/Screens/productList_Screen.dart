@@ -16,15 +16,18 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   bool inProgress = false;
+  int  size = 0;
   List<products> Productlist = [];
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getProductList();
+    size = Productlist.length;
   }
 
   void getProductList() async {
+    Productlist.clear();
     inProgress = true;
     setState(() {});
     Response response =
@@ -37,12 +40,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
         for (Map<String, dynamic> productJson in responseData['data']) {
           Productlist.add(products(
               productJson['_id'],
-              productJson['ProductName'],
-              productJson['ProductCode'],
+              productJson['ProductName'] ?? '',
+              productJson['ProductCode'] ?? '',
               productJson['Img'] ?? "",
-              productJson['UnitPrice'],
+              productJson['UnitPrice'] ?? '',
               productJson['Qty']?? "",
-              productJson['TotalPrice']));
+              productJson['TotalPrice'] ?? ''
+          )
+          );
         }
       }
 
@@ -51,6 +56,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
     print(Productlist.length);
     setState(() {});
   }
+
+  // void getProductListRefress() async {
+  //   inProgress = true;
+  //   setState(() {});
+  //   Response response =
+  //       await get(Uri.parse("https://crud.teamrabbil.com/api/v1/ReadProduct"));
+  //   // print(response.body);
+  //   // print(response.statusCode);
+  //   // if (response.statusCode == 200) {
+  //     final Map<String, dynamic> responseData = jsonDecode(response.body);
+  //     if (responseData['status'] == 'success' && size < Productlist.length ) {
+  //       for (Map<String, dynamic> productJson in responseData['data']) {
+  //         Productlist.add(products(
+  //             productJson['_id'],
+  //             productJson['ProductName'],
+  //             productJson['ProductCode'],
+  //             productJson['Img'] ?? "",
+  //             productJson['UnitPrice'],
+  //             productJson['Qty']?? "",
+  //             productJson['TotalPrice']));
+  //       }
+  //     }
+  //   inProgress = false;
+  //   print(Productlist.length);
+  //   setState(() {});
+  //   }
 
   @override
   Widget build(BuildContext context) {
